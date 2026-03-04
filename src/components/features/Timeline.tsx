@@ -12,6 +12,7 @@ export default function Timeline() {
     const svgRef = useRef<SVGSVGElement>(null);
     const pathRef = useRef<SVGPathElement>(null);
     const faceRef = useRef<HTMLImageElement>(null);
+    const headerRef = useRef<HTMLDivElement>(null);
 
     const events = [
         { time: "DAY 1 - 09:00 AM", title: "REGISTRATION", desc: "Check-in and collect your swagger. The heist begins." },
@@ -30,20 +31,30 @@ export default function Timeline() {
         const section = sectionRef.current;
         const path = pathRef.current;
         const face = faceRef.current;
+        const header = headerRef.current;
 
         if (!section || !path || !face) return;
 
-        // Ensure the path is ready for MotionPath
+        // ── Header parallax float ──
+        if (header) {
+            gsap.to(header, {
+                yPercent: -15,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: section,
+                    start: "top bottom",
+                    end: "top top",
+                    scrub: 1,
+                }
+            });
+        }
 
-        // Let's set the stroke dasharray and dashoffset for "drawing" the dotted line
-        // Actually, since it's a dotted line, stroke-dasharray is already defined in CSS.
-        // We will animate a solid mask or we can use drawSVG, but natively we can just scrub the motion path
-
-        // Fade in events as they scroll
+        // ── Event card entrance + active class toggling ──
         const eventCards = gsap.utils.toArray('.timeline-event') as HTMLElement[];
         eventCards.forEach((card, i) => {
+            // Entrance animation
             gsap.fromTo(card,
-                { opacity: 0, x: i % 2 === 0 ? -50 : 50, scale: 0.9 },
+                { opacity: 0, x: i % 2 === 0 ? -60 : 60, scale: 0.92 },
                 {
                     opacity: 1,
                     x: 0,
@@ -52,25 +63,33 @@ export default function Timeline() {
                     ease: "back.out(1.2)",
                     scrollTrigger: {
                         trigger: card,
-                        start: "top 80%",
-                        end: "top 50%",
+                        start: "top 85%",
+                        end: "top 55%",
                         scrub: 1,
                     }
                 }
             );
+
+            // Active class toggle — lights up cards when they're in the viewport centre
+            ScrollTrigger.create({
+                trigger: card,
+                start: "top 75%",
+                end: "bottom 25%",
+                toggleClass: { targets: card, className: "active" },
+            });
         });
 
-        // The Master Timeline for the Face Object and Line Drawing
+        // ── The Master Timeline for the Face Object and Line Drawing ──
         const masterTl = gsap.timeline({
             scrollTrigger: {
                 trigger: section,
                 start: "top 20%",
                 end: "bottom 80%",
-                scrub: 1, // Smooth scrubbing
+                scrub: 1,
             }
         });
 
-        // We center the face on the origin of the path.
+        // Centre the face on the origin of the path
         gsap.set(face, { xPercent: -50, yPercent: -50, transformOrigin: "50% 50%" });
 
         // Move the face along the path
@@ -84,7 +103,7 @@ export default function Timeline() {
             ease: "none",
         }, 0);
 
-        // Also, we can draw a solid red glow line behind the face by animating stroke-dashoffset on a duplicate path
+        // Draw the red glow line behind the face
         const glowPath = document.querySelector('.glow-path') as SVGPathElement;
         if (glowPath) {
             const glowLength = glowPath.getTotalLength();
@@ -99,7 +118,7 @@ export default function Timeline() {
 
     return (
         <section className="timeline-section" ref={sectionRef} id="timeline">
-            <div className="timeline-header">
+            <div className="timeline-header" ref={headerRef}>
                 <h2>THE <span className="text-red">MASTERPLAN</span></h2>
                 <p>30 HOURS TO INFILTRATE</p>
             </div>
@@ -150,10 +169,11 @@ export default function Timeline() {
                 <div className="timeline-events-grid">
                     {events.map((evt, index) => {
                         const isLeft = index % 2 === 0;
+                        const stepLabel = `STEP ${String(index + 1).padStart(2, '0')}`;
                         return (
                             <div key={index} className={`timeline-event ${isLeft ? 'left' : 'right'}`}>
                                 <span className="timeline-dot" />
-                                <div className="event-content">
+                                <div className="event-content" data-step={stepLabel}>
                                     <h4 className="event-time">{evt.time}</h4>
                                     <h3 className="event-title">{evt.title}</h3>
                                     <p className="event-desc">{evt.desc}</p>

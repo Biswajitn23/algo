@@ -1,0 +1,117 @@
+/* ═══════════════════════════════════════════════
+   SECTION DIVIDER — Visual breath between sections
+   ═══════════════════════════════════════════════ */
+
+.section-divider {
+    position: relative;
+    width: 100%;
+    padding: 4rem 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    overflow: hidden;
+    z-index: 5;
+}
+
+/* The horizontal gradient line */
+.section-divider__line {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 80%;
+    max-width: 900px;
+    height: 1px;
+    background: linear-gradient(90deg,
+            transparent 0%,
+            rgba(229, 9, 20, 0.08) 15%,
+            rgba(229, 9, 20, 0.35) 40%,
+            rgba(229, 9, 20, 0.6) 50%,
+            rgba(229, 9, 20, 0.35) 60%,
+            rgba(229, 9, 20, 0.08) 85%,
+            transparent 100%);
+}
+
+/* Centre dot with pulse */
+.section-divider__dot {
+    position: relative;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #e50914;
+    box-shadow:
+        0 0 12px rgba(229, 9, 20, 0.7),
+        0 0 30px rgba(229, 9, 20, 0.3);
+    z-index: 2;
+    animation: divider-pulse 3s ease-in-out infinite;
+}
+
+/* Soft glow halo behind the dot */
+.section-divider__dot::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 60px;
+    height: 60px;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(229, 9, 20, 0.15) 0%, transparent 70%);
+    pointer-events: none;
+}
+
+/* Flanking diamond accents */
+.section-divider__accent {
+    position: absolute;
+    top: 50%;
+    width: 5px;
+    height: 5px;
+    transform: translateY(-50%) rotate(45deg);
+    background: rgba(229, 9, 20, 0.35);
+    box-shadow: 0 0 6px rgba(229, 9, 20, 0.25);
+}
+
+.section-divider__accent--left {
+    left: calc(50% - 50px);
+}
+
+.section-divider__accent--right {
+    right: calc(50% - 50px);
+}
+
+@keyframes divider-pulse {
+
+    0%,
+    100% {
+        box-shadow:
+            0 0 12px rgba(229, 9, 20, 0.7),
+            0 0 30px rgba(229, 9, 20, 0.3);
+        transform: scale(1);
+    }
+
+    50% {
+        box-shadow:
+            0 0 18px rgba(229, 9, 20, 0.9),
+            0 0 45px rgba(229, 9, 20, 0.4);
+        transform: scale(1.2);
+    }
+}
+
+/* ═══════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+    .section-divider {
+        padding: 3rem 0;
+    }
+
+    .section-divider__line {
+        width: 90%;
+    }
+
+    .section-divider__accent {
+        display: none;
+    }
+}

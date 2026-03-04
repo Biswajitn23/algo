@@ -9,7 +9,23 @@
     padding: 8rem 2rem;
     z-index: 10;
     overflow: hidden;
-    border-top: 1px solid rgba(229, 9, 20, 0.2);
+}
+
+/* Faint grid texture for depth */
+.timeline-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 50px 50px;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.6;
 }
 
 .timeline-header {
@@ -115,21 +131,59 @@
 }
 
 .event-content {
-    background: rgba(10, 10, 10, 0.8);
-    border: 1px solid rgba(229, 9, 20, 0.3);
-    padding: 2rem;
+    background: rgba(10, 10, 10, 0.85);
+    border: 1px solid rgba(229, 9, 20, 0.15);
+    padding: 2rem 2rem 2rem 2rem;
     clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
     backdrop-filter: blur(10px);
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     max-width: 400px;
+    position: relative;
 }
 
+/* Step number indicator */
+.event-content::before {
+    content: attr(data-step);
+    position: absolute;
+    top: 10px;
+    font-family: 'Bebas Neue', Impact, sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.15em;
+    color: rgba(229, 9, 20, 0.35);
+    pointer-events: none;
+}
+
+.timeline-event.left .event-content::before {
+    left: 22px;
+}
+
+.timeline-event.right .event-content::before {
+    right: 18px;
+}
+
+/* ─── Active (currently in viewport) state ─── */
+.timeline-event.active .event-content {
+    border-color: rgba(229, 9, 20, 0.55);
+    background: rgba(15, 8, 8, 0.95);
+    box-shadow:
+        0 0 25px rgba(229, 9, 20, 0.1),
+        inset 0 0 30px rgba(229, 9, 20, 0.03);
+}
+
+.timeline-event.active .event-content::before {
+    color: rgba(229, 9, 20, 0.7);
+}
+
+.timeline-event.active .event-title {
+    text-shadow: 0 0 20px rgba(229, 9, 20, 0.25);
+}
+
+/* Hover */
 .timeline-event:hover .event-content {
     background: #111;
     border-color: var(--color-primary, #e50914);
     box-shadow: 0 0 30px rgba(229, 9, 20, 0.15);
-    transform: scale(1.05);
-    /* Slight pop */
+    transform: scale(1.03);
 }
 
 .event-time {
@@ -148,6 +202,7 @@
     color: white;
     margin: 0 0 1rem 0;
     line-height: 1;
+    transition: text-shadow 0.4s ease;
 }
 
 .event-desc {
@@ -164,12 +219,18 @@
     top: 50%;
     width: 3rem;
     height: 2px;
-    background: rgba(229, 9, 20, 0.5);
+    background: linear-gradient(90deg, rgba(229, 9, 20, 0.5), rgba(229, 9, 20, 0.1));
     z-index: -1;
+    transition: opacity 0.4s ease;
+}
+
+.timeline-event.active .event-connector {
+    background: linear-gradient(90deg, rgba(229, 9, 20, 0.8), rgba(229, 9, 20, 0.2));
 }
 
 .timeline-event.left .event-connector {
     right: 0;
+    background: linear-gradient(90deg, rgba(229, 9, 20, 0.1), rgba(229, 9, 20, 0.5));
 }
 
 .timeline-event.right .event-connector {
@@ -273,6 +334,13 @@
         box-shadow: 0 0 8px rgba(229, 9, 20, 0.8), 0 0 20px rgba(229, 9, 20, 0.3);
         z-index: 3;
         border: 2px solid #080808;
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    /* Active dot pulses on mobile too */
+    .timeline-event.active .timeline-dot {
+        transform: scale(1.3);
+        box-shadow: 0 0 12px rgba(229, 9, 20, 1), 0 0 30px rgba(229, 9, 20, 0.5);
     }
 
     .event-content {
@@ -280,6 +348,14 @@
         padding: 1.2rem 1rem;
         clip-path: none;
         border-radius: 8px;
+    }
+
+    /* Step indicator adjusts for mobile */
+    .event-content::before {
+        top: 8px;
+        right: 10px !important;
+        left: auto !important;
+        font-size: 0.75rem;
     }
 
     .event-title {

@@ -14,6 +14,7 @@ import Location from './components/features/Location';
 import FAQ from './components/features/FAQ';
 import TeamsPage from './pages/TeamsPage';
 import Loader from './components/ui/Loader';
+import SectionDivider from './components/ui/SectionDivider';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -71,9 +72,13 @@ function App() {
                 <WhatIsAlgoStorm />
               </MorphTransition>
               <Season1Recap />
+              <SectionDivider />
               <Timeline />
+              <SectionDivider />
               <Prizes />
+              <SectionDivider />
               <Location />
+              <SectionDivider />
               <FAQ />
             </>
           } />
