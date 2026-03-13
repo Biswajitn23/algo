@@ -41,6 +41,13 @@ export default function Season1Recap() {
                 start: 'top top',
                 end: 'bottom bottom',
                 scrub: 0.8,
+                onUpdate: (self) => {
+                    if (self.progress > 0.05) {
+                        wrapper.setAttribute('data-scrolled', 'true');
+                    } else {
+                        wrapper.setAttribute('data-scrolled', 'false');
+                    }
+                }
             },
         });
 
@@ -111,6 +118,12 @@ export default function Season1Recap() {
                         {/* Optimised glow — single element, GPU opacity only */}
                         <div className="s1-glow" aria-hidden="true" />
                     </div>
+                </div>
+
+                {/* Scroll Indicator */}
+                <div className="s1-scroll-down">
+                    <span className="s1-scroll-emoji">🖱️</span>
+                    <p className="s1-scroll-label">SCROLL TO RECOVER FOOTAGE</p>
                 </div>
             </div>
         </div>

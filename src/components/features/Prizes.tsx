@@ -36,20 +36,48 @@ export default function Prizes() {
         // Bounty rows stagger animation
         const rows = bountyContainer.querySelectorAll('.bounty-row');
         gsap.fromTo(rows,
-            { x: -50, opacity: 0, skewX: 10 },
+            { 
+                x: -100, 
+                opacity: 0, 
+                skewX: 20,
+                transformOrigin: "left center"
+            },
             {
                 x: 0,
                 opacity: 1,
                 skewX: 0,
-                duration: 0.8,
-                stagger: 0.2,
-                ease: "back.out(1.5)",
+                duration: 1,
+                stagger: 0.15,
+                ease: "expo.out",
                 scrollTrigger: {
                     trigger: bountyContainer,
                     start: "top 75%",
                 }
             }
         );
+
+        // Counter animation for rewards
+        const rewardAmounts = bountyContainer.querySelectorAll('.reward-amount-value');
+        rewardAmounts.forEach((el) => {
+            const finalVal = parseInt((el as HTMLElement).dataset.value || "0");
+            gsap.fromTo(el, 
+                { innerText: 0 },
+                {
+                    innerText: finalVal,
+                    duration: 2,
+                    snap: { innerText: 1 },
+                    ease: "power2.out",
+                    scrollTrigger: {
+                        trigger: el,
+                        start: "top 90%",
+                    },
+                    onUpdate: function() {
+                        const val = parseInt((this.targets()[0] as HTMLElement).innerText);
+                        (this.targets()[0] as HTMLElement).innerText = val.toLocaleString();
+                    }
+                }
+            );
+        });
 
     }, []);
 
@@ -108,7 +136,13 @@ export default function Prizes() {
                             <div className="bounty-reward">
                                 <div className="reward-label">REWARD</div>
                                 <div className="reward-amount">
-                                    <span className="currency">₹</span>{bounty.amount}
+                                    <span className="currency">₹</span>
+                                    <span 
+                                        className="reward-amount-value" 
+                                        data-value={bounty.amount.replace(/,/g, '')}
+                                    >
+                                        {bounty.amount}
+                                    </span>
                                 </div>
                             </div>
 

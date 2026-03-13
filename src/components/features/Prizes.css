@@ -163,10 +163,16 @@
 }
 
 .bounty-row:hover {
-    background: #111;
-    border-color: rgba(229, 9, 20, 0.5);
-    transform: scale(1.02) translateX(10px);
-    box-shadow: -10px 0 30px rgba(229, 9, 20, 0.2);
+    background: #0d0d0d;
+    border-color: rgba(229, 9, 20, 0.6);
+    transform: scale(1.02) translateX(15px);
+    box-shadow: -15px 0 40px rgba(229, 9, 20, 0.3);
+}
+
+.bounty-row:hover .bounty-title {
+    color: var(--color-primary, #e50914);
+    text-shadow: 0 0 15px rgba(229, 9, 20, 0.4);
+    transition: color 0.1s, text-shadow 0.1s;
 }
 
 /* Row 1 gets special primary red treatment */
@@ -227,6 +233,24 @@
     color: var(--color-primary, #e50914);
     margin-bottom: 0.2rem;
     font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.bounty-status::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    background: var(--color-primary, #e50914);
+    border-radius: 50%;
+    box-shadow: 0 0 10px var(--color-primary, #e50914);
+    animation: status-pulse 1.5s infinite;
+}
+
+@keyframes status-pulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50% { transform: scale(1.5); opacity: 0.4; }
 }
 
 .bounty-title {
@@ -297,15 +321,38 @@
 
 .bounty-scanline {
     position: absolute;
-    top: 0;
+    top: -100%;
     left: 0;
     width: 100%;
     height: 100%;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgba(229, 9, 20, 0.05) 45%,
+        rgba(229, 9, 20, 0.2) 50%,
+        rgba(229, 9, 20, 0.05) 55%,
+        transparent 100%
+    );
+    z-index: 5;
+    pointer-events: none;
+    animation: scanline-move 4s linear infinite;
+    opacity: 0.6;
+}
+
+@keyframes scanline-move {
+    0% { top: -100%; }
+    100% { top: 100%; }
+}
+
+.bounty-row::after {
+    content: '';
+    position: absolute;
+    inset: 0;
     background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0) 50%, rgba(0, 0, 0, 0.2) 50%, rgba(0, 0, 0, 0.2));
     background-size: 100% 4px;
-    opacity: 0.1;
+    opacity: 0.05;
     pointer-events: none;
-    z-index: 5;
+    z-index: 4;
 }
 
 .prizes-bg-grid {

@@ -11,7 +11,8 @@ export default function Timeline() {
     const sectionRef = useRef<HTMLElement>(null);
     const svgRef = useRef<SVGSVGElement>(null);
     const pathRef = useRef<SVGPathElement>(null);
-    const faceRef = useRef<HTMLImageElement>(null);
+    const glowPathRef = useRef<SVGPathElement>(null);
+    const faceRef = useRef<SVGImageElement>(null);
     const headerRef = useRef<HTMLDivElement>(null);
 
     const events = [
@@ -89,30 +90,40 @@ export default function Timeline() {
             }
         });
 
-        // Centre the face on the origin of the path
-        gsap.set(face, { xPercent: -50, yPercent: -50, transformOrigin: "50% 50%" });
+        // Initialize animations after a small delay to ensure SVG dimensions are set
+        requestAnimationFrame(() => {
+            if (!face || !path || !glowPathRef.current) return;
 
-        // Move the face along the path
-        masterTl.to(face, {
-            motionPath: {
-                path: path,
-                align: path,
-                autoRotate: -90,
-                alignOrigin: [0.5, 0.5],
-            },
-            ease: "none",
-        }, 0);
+            // Centre the face on the origin of the path
+            gsap.set(face, { xPercent: -50, yPercent: -50, transformOrigin: "50% 50%" });
 
-        // Draw the red glow line behind the face
-        const glowPath = document.querySelector('.glow-path') as SVGPathElement;
-        if (glowPath) {
+            // Move the face along the path
+            masterTl.to(face, {
+                motionPath: {
+                    path: path,
+                    autoRotate: -90,
+                    align: path,
+                    alignOrigin: [0.5, 0.5],
+                },
+                ease: "none",
+            }, 0);
+
+            // Draw the red glow line — Using the same path as the mask
+            const glowPath = glowPathRef.current;
             const glowLength = glowPath.getTotalLength();
-            gsap.set(glowPath, { strokeDasharray: glowLength, strokeDashoffset: glowLength });
+            
+            // Set initial state
+            gsap.set(glowPath, { 
+                strokeDasharray: glowLength, 
+                strokeDashoffset: glowLength,
+                visibility: 'visible' 
+            });
+
             masterTl.to(glowPath, {
                 strokeDashoffset: 0,
                 ease: "none"
             }, 0);
-        }
+        });
 
     }, []);
 
@@ -147,22 +158,24 @@ export default function Timeline() {
                         {/* Fill Path (Solid Red) animated alongside mask */}
                         <path
                             className="glow-path"
+                            ref={glowPathRef}
                             d="M 500 0 C 800 300, 200 600, 500 1000 C 800 1400, 200 1700, 500 2000"
                             fill="none"
                             stroke="#e50914"
                             strokeWidth="6"
                             filter="drop-shadow(0 0 10px #e50914)"
-                            vectorEffect="non-scaling-stroke"
+                            style={{ visibility: 'hidden' }}
+                        />
+                        {/* The sliding face image - moved inside SVG for perfect sync */}
+                        <image
+                            href={faceIcon}
+                            className="timeline-face-pin"
+                            ref={faceRef}
+                            width="60"
+                            height="60"
+                            style={{ overflow: 'visible' }}
                         />
                     </svg>
-
-                    {/* The sliding face image */}
-                    <img
-                        src={faceIcon}
-                        alt="Hacker Face Map Pin"
-                        className="timeline-face-pin"
-                        ref={faceRef}
-                    />
                 </div>
 
                 {/* Event Nodes plotted using CSS layout */}

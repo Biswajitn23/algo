@@ -146,7 +146,7 @@ export default function Location() {
                             <div className="location-map-container">
                                 {/* Explicitly pinned Amity University Raipur iframe via exact coordinates */}
                                 <iframe
-                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3714.281!2d81.926!3d21.406!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMjHCsDI0JzIxLjYiTiA4McKwNTUnMzMuNiJF!5e0!3m2!1sen!2sin!4v1709123456789!5m2!1sen!2sin&q=21.406,81.926"
+                                    src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3753.5357150513014!2d81.89011937531114!3d21.39622458034669!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3a289395e43e9897%3A0x2066843c02474507!2sAmity%20University%2C%20Raipur!5e1!3m2!1sen!2sin!4v1773411564354!5m2!1sen!2sin"
                                     width="100%"
                                     height="100%"
                                     style={{ border: 0 }}

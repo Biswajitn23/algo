@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Lenis from '@studio-freight/lenis';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import teamCategories from '../data/teamData';
 import './TeamsPage.css';
+
+gsap.registerPlugin(ScrollTrigger);
 
 /* ═══════════════════════════════════════════
    CONFIG
@@ -47,7 +51,7 @@ export default function TeamsPage() {
     });
 
     // Extract items data once
-    const { renderItems, totalZLength } = React.useMemo(() => {
+    const { renderItems, totalZLength, snapPoints } = React.useMemo(() => {
         const items: RenderItem[] = [];
         let currentZ = 0;
 
@@ -102,7 +106,12 @@ export default function TeamsPage() {
             });
         }
 
-        return { renderItems: items, totalZLength: Math.abs(currentZ) };
+        // Calculate snap points (scroll positions where cards/categories are at Z=0)
+        const snaps = items
+            .filter(it => it.type === 'card' || it.type === 'category')
+            .map(it => -it.baseZ / CONFIG.camSpeed);
+
+        return { renderItems: items, totalZLength: Math.abs(currentZ), snapPoints: snaps };
     }, []);
 
     // Effect for Lenis and RAF Engine
@@ -116,6 +125,7 @@ export default function TeamsPage() {
         lenis.on('scroll', ({ scroll, velocity: v }: any) => {
             stateRef.current.scroll = scroll;
             stateRef.current.targetSpeed = v;
+            ScrollTrigger.update();
         });
 
         // Mouse tracking for parallax tilt
@@ -144,7 +154,20 @@ export default function TeamsPage() {
                 setCoord(st.scroll);
             }
 
-            // --- 3D RENDER UPDATES ---
+            // --- FIND NEAREST ITEM FOR "LOCK" & HIGHLIGHT ---
+            const cameraZ = st.scroll * CONFIG.camSpeed;
+            let nearestUid = '';
+            let minDistance = Infinity;
+
+            itemsRef.current.forEach(({ id, item }) => {
+                if (item.type === 'card' || item.type === 'category') {
+                    const dist = Math.abs(item.baseZ + cameraZ);
+                    if (dist < minDistance) {
+                        minDistance = dist;
+                        nearestUid = id;
+                    }
+                }
+            });
 
             // 1. Camera Shake and Tilt
             const shakeX = Math.random() * st.velocity * 0.1;
@@ -154,14 +177,12 @@ export default function TeamsPage() {
 
             // 2. Dynamic Warp Perspective FOV
             const isMobile = window.innerWidth < 768;
-            const baseFov = isMobile ? 600 : 1000;
+            const baseFov = isMobile ? 700 : 1000;
             const fov = baseFov - Math.min(Math.abs(st.velocity) * 10, baseFov * 0.6);
             viewportRef.current!.style.perspective = `${fov}px`;
 
             // 3. Process every registered DOM element in 3D
-            const cameraZ = st.scroll * CONFIG.camSpeed;
-
-            itemsRef.current.forEach(({ el, item }) => {
+            itemsRef.current.forEach(({ el, id, item }) => {
                 if (!el) return;
 
                 // Where is this item relative to the camera pulling forward?
@@ -181,6 +202,15 @@ export default function TeamsPage() {
                 if (vizZ > 100 && item.type !== 'star') alpha = 1 - ((vizZ - 100) / 300);
 
                 if (alpha < 0) alpha = 0;
+
+                // Handle active state class toggle
+                // MOBILE: Slightly larger threshold to lock earlier on small screens
+                const activeThreshold = isMobile ? 800 : 600;
+                const isActive = (id === nearestUid) && minDistance < activeThreshold;
+                const wasActive = el.classList.contains('is-active');
+                if (isActive !== wasActive) {
+                    el.classList.toggle('is-active', isActive);
+                }
 
                 // Only touch DOM if changed/visible to save frames
                 if (alpha > 0.01 || el.style.opacity !== '0') {
@@ -202,12 +232,24 @@ export default function TeamsPage() {
                                 el.style.textShadow = 'none';
                             }
                         } else if (item.type === 'card') {
+                            // Lock to center if active
+                            const activeThreshold = isMobile ? 800 : 600;
+                            const isActiveInTick = (id === nearestUid) && minDistance < activeThreshold;
+                            
+                            // If active, we "lock" coordinates to center (0,0) and rotation to 0
+                            // MOBILE: Slight vertical offset (-30px) to lift card above potential browser bottom bars
+                            const targetX = isActiveInTick ? 0 : item.x;
+                            const targetY = isActiveInTick ? (isMobile ? -30 : 0) : item.y;
+                            const targetRot = isActiveInTick ? 0 : item.rot;
+
                             // Float cards gently
                             const t = time * 0.001;
-                            const float = Math.sin(t + item.x) * 10;
+                            const float = Math.sin(t + item.x) * (isActiveInTick ? 2 : 10);
+                            
                             // Add velocity stretch
                             const zSkew = Math.min(Math.abs(st.velocity) * 2, 20) * Math.sign(st.velocity);
-                            trans = `translate3d(${item.x}px, ${item.y}px, ${vizZ}px) rotateZ(${item.rot}deg) rotateY(${float}deg) rotateX(${zSkew}deg)`;
+                            
+                            trans = `translate3d(${targetX}px, ${targetY}px, ${vizZ}px) rotateZ(${targetRot}deg) rotateY(${float}deg) rotateX(${zSkew}deg)`;
                         }
 
                         el.style.transform = trans;
@@ -223,12 +265,46 @@ export default function TeamsPage() {
 
         rafId = requestAnimationFrame(tick);
 
+        // --- SCROLL SNAPPING ---
+        // We use ScrollTrigger on the proxy to snap naturally
+        const snapST = ScrollTrigger.create({
+            trigger: ".team-scroll-proxy",
+            start: "top top",
+            end: "bottom bottom",
+            snap: {
+                snapTo: (value) => {
+                    // Map value (0-1) to scroll coordinate
+                    const maxScroll = (totalZLength / CONFIG.camSpeed);
+                    const currentScroll = value * maxScroll;
+                    
+                    // Find nearest snap point
+                    let nearest = snapPoints[0];
+                    let minD = Math.abs(currentScroll - nearest);
+                    
+                    snapPoints.forEach(p => {
+                        const d = Math.abs(currentScroll - p);
+                        if (d < minD) {
+                            minD = d;
+                            nearest = p;
+                        }
+                    });
+
+                    // Return normalized value for ScrollTrigger to snap to
+                    return nearest / maxScroll;
+                },
+                duration: { min: 0.2, max: 0.8 },
+                delay: 0.1,
+                ease: "power2.inOut"
+            }
+        });
+
         return () => {
             window.removeEventListener('mousemove', onMouseMove);
             cancelAnimationFrame(rafId);
             lenis.destroy();
+            snapST.kill();
         };
-    }, [renderItems]);
+    }, [renderItems, snapPoints, totalZLength]);
 
 
     return (
